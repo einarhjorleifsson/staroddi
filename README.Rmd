@@ -1,0 +1,48 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# staroddi
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of {staroddi} is:
+
+* Primarily to provide some convenient functions to read in [StarOddi](https://www.star-oddi.com/) data, including metadata
+* Add some conventient function to tabulate and visualize the data
+
+## Installation
+
+You can install the development version of staroddi from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("einarhjorleifsson/staroddi")
+```
+
+## Example
+
+This is a basic example which shows you how to read in a staroddi file into R:
+
+```{r example}
+library(staroddi)
+## basic example code
+dst <- read_dst(system.file("demos/1M9380.DAT", package="staroddi"))
+dst
+attributes(dst)$meta
+```
+
