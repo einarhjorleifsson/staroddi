@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 
 The goal of {staroddi} is:
 
-* Primarily to provide some convenient functions to read in [StarOddi](https://www.star-oddi.com/) data, including metadata
+* Primarily to provide some convenient functions to read in [Star-Oddi](https://www.star-oddi.com/) data, including metadata
 * Add some conventient function to tabulate and visualize the data
 
 ## Installation
@@ -36,7 +36,7 @@ devtools::install_github("einarhjorleifsson/staroddi")
 
 ## Example
 
-This is a basic example which shows you how to read in a staroddi file into R:
+This is a basic example which shows you how to read a Star-Oddi file into R:
 
 ```{r example}
 library(staroddi)
