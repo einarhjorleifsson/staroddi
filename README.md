@@ -33,35 +33,35 @@ library(staroddi)
 dst <- read_dst(system.file("demos/1M9380.DAT", package="staroddi"))
 dst
 #> # A tibble: 29,963 × 7
-#>    dst_id  ncol .rid  time              Temperature Depth path                  
-#>  * <chr>  <int> <chr> <chr>             <chr>       <chr> <chr>                 
-#>  1 1M9380     4 1     25/06/08 21:47:00 20.580      -1.27 /tmp/RtmpqNmGbS/temp_…
-#>  2 1M9380     4 2     25/06/08 22:07:00 ____        -1.27 /tmp/RtmpqNmGbS/temp_…
-#>  3 1M9380     4 3     25/06/08 22:27:00 ____        -1.27 /tmp/RtmpqNmGbS/temp_…
-#>  4 1M9380     4 4     25/06/08 22:47:00 18.911      -1.27 /tmp/RtmpqNmGbS/temp_…
-#>  5 1M9380     4 5     25/06/08 23:07:00 ____        -1.27 /tmp/RtmpqNmGbS/temp_…
-#>  6 1M9380     4 6     25/06/08 23:27:00 ____        -1.27 /tmp/RtmpqNmGbS/temp_…
-#>  7 1M9380     4 7     25/06/08 23:47:00 17.877      -1.27 /tmp/RtmpqNmGbS/temp_…
-#>  8 1M9380     4 8     26/06/08 00:07:00 ____        -1.27 /tmp/RtmpqNmGbS/temp_…
-#>  9 1M9380     4 9     26/06/08 00:27:00 ____        -1.27 /tmp/RtmpqNmGbS/temp_…
-#> 10 1M9380     4 10    26/06/08 00:47:00 16.052      -1.04 /tmp/RtmpqNmGbS/temp_…
+#>     .rid time                 temp depth dst_id audkenni   utgafa
+#>  * <int> <dttm>              <dbl> <dbl> <chr>  <chr>       <int>
+#>  1     1 2008-06-25 21:47:00  20.6 -1.27 1M9380 ISL.MILLI.      1
+#>  2     2 2008-06-25 22:07:00  NA   -1.27 1M9380 ISL.MILLI.      1
+#>  3     3 2008-06-25 22:27:00  NA   -1.27 1M9380 ISL.MILLI.      1
+#>  4     4 2008-06-25 22:47:00  18.9 -1.27 1M9380 ISL.MILLI.      1
+#>  5     5 2008-06-25 23:07:00  NA   -1.27 1M9380 ISL.MILLI.      1
+#>  6     6 2008-06-25 23:27:00  NA   -1.27 1M9380 ISL.MILLI.      1
+#>  7     7 2008-06-25 23:47:00  17.9 -1.27 1M9380 ISL.MILLI.      1
+#>  8     8 2008-06-26 00:07:00  NA   -1.27 1M9380 ISL.MILLI.      1
+#>  9     9 2008-06-26 00:27:00  NA   -1.27 1M9380 ISL.MILLI.      1
+#> 10    10 2008-06-26 00:47:00  16.1 -1.04 1M9380 ISL.MILLI.      1
 #> # … with 29,953 more rows
 attributes(dst)$meta
-#> # A tibble: 14 × 7
-#>    id    var                val                  dst_id dstid_source path      n
-#>    <chr> <chr>              <chr>                <chr>  <chr>        <chr> <int>
-#>  1 #0    Date-time:         15.12.2010 12:01:48  1M9380 Recorder     /tmp…    14
-#>  2 #1    Recorder:          1M9380               1M9380 Recorder     /tmp…    14
-#>  3 #2    File type:         1                    1M9380 Recorder     /tmp…    14
-#>  4 #3    Columns:           4                    1M9380 Recorder     /tmp…    14
-#>  5 #4    Channels:          2                    1M9380 Recorder     /tmp…    14
-#>  6 #5    Field separation:  0                    1M9380 Recorder     /tmp…    14
-#>  7 #6    Decimal point:     1                    1M9380 Recorder     /tmp…    14
-#>  8 #7    Date def.:         0 1                  1M9380 Recorder     /tmp…    14
-#>  9 #8    Time def.:         0                    1M9380 Recorder     /tmp…    14
-#> 10 #9    Channel 1:         Temperature(°C) Tem… 1M9380 Recorder     /tmp…    14
-#> 11 #10   Channel 2:         Depth(m) Depth(m) 2… 1M9380 Recorder     /tmp…    14
-#> 12 #11   Reconvertion:      1                    1M9380 Recorder     /tmp…    14
-#> 13 #19   Line color:        1 2 3 4              1M9380 Recorder     /tmp…    14
-#> 14 #30   Trend Type Number: 1                    1M9380 Recorder     /tmp…    14
+#> # A tibble: 14 × 3
+#>    id    var                val                         
+#>    <chr> <chr>              <chr>                       
+#>  1 0     Date-time:         15.12.2010 12:01:48         
+#>  2 1     Recorder:          1M9380                      
+#>  3 2     File type:         1                           
+#>  4 3     Columns:           4                           
+#>  5 4     Channels:          2                           
+#>  6 5     Field separation:  0                           
+#>  7 6     Decimal point:     1                           
+#>  8 7     Date def.:         0 1                         
+#>  9 8     Time def.:         0                           
+#> 10 9     Channel 1:         Temperature(°C) Temp(°C) 3 1
+#> 11 10    Channel 2:         Depth(m) Depth(m) 2 2       
+#> 12 11    Reconvertion:      1                           
+#> 13 19    Line color:        1 2 3 4                     
+#> 14 30    Trend Type Number: 1
 ```

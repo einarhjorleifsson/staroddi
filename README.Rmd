@@ -45,4 +45,3 @@ dst <- read_dst(system.file("demos/1M9380.DAT", package="staroddi"))
 dst
 attributes(dst)$meta
 ```
-

@@ -13,20 +13,15 @@ knitr::opts_chunk$set(
 ```
 
 ```{r}
-library(lubridate)
 library(tidyverse)
 library(staroddi)
 dst <- 
-  read_dst(system.file("demos/1M9380.DAT", package="staroddi")) %>% 
-  mutate(time = dmy_hms(time),
-         Temperature = as.numeric(Temperature),
-         Depth = as.numeric(Depth),
-         Depth = -Depth)
+  read_dst(system.file("demos/1M9380.DAT", package="staroddi"))
 ```
 
 ```{r}
 dst %>% 
-  select(time, Temperature, Depth) %>% 
+  select(time, Temperature = temp, Depth = depth) %>% 
   gather(var, val, -time) %>% 
   drop_na() %>% 
   ggplot(aes(time, val)) +
@@ -38,7 +33,7 @@ dst %>%
 
 ```{r}
 dst %>% 
-  select(time, Temperature, Depth) %>% 
+  select(time, Temperature = temp, Depth = depth) %>% 
   gather(var, val, -time) %>% 
   drop_na() %>% 
   arrange(time) %>% 
