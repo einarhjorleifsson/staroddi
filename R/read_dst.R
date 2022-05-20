@@ -58,9 +58,10 @@ read_dst <- function(fil) {
                   temp = 3,
                   depth = 4) |>
     dplyr::mutate(time = lubridate::dmy_hms(time),
-           dst_id = recorder,
-           audkenni = audkenni,
-           utgafa = utgafa)
+                  depth = -depth,
+                  dst_id = recorder,
+                  audkenni = audkenni,
+                  utgafa = utgafa)
 
   attributes(DATA)$meta <- META
   attributes(DATA)$file <- fil
