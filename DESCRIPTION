@@ -1,6 +1,6 @@
 Package: staroddi
 Title: Reads StarOddi files and then some
-Version: 2022-05-19
+Version: 2022-05-21
 Authors@R: 
     person("Einar", "Hjorleifsson", , "einar.hjorleifsson@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
@@ -11,8 +11,10 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 Imports: 
     dplyr,
+    fs,
     lubridate,
     magrittr,
+    purrr,
     readr,
     stringr,
     tibble,
