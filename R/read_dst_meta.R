@@ -1,4 +1,8 @@
-# TODO: Mostly likely better to return a wide
+# TODO:
+#       validate - if e.g. warnings return a flag
+#                  possibly also date checking
+#       add t2
+#
 
 #' Read header data, normally from .DAT file
 #'
@@ -17,24 +21,44 @@
 #' library(staroddi)
 #' header <- read_dst_header(system.file("demos/1M9380.DAT", package = "staroddi"))
 #' header
+
 read_dst_header <- function(fil, long = TRUE) {
 
   file_info <- fs::file_info(fil)
 
   RAW <- readLines(fil, encoding = "latin1")
   n.comments <- stringr::str_detect(RAW, "^#") |> sum()
+  # need to know the minimum number of comments from Sigmar
+  if(n.comments == 0 | !str_detect(RAW[1], "Date-time:")) return(NULL)
+
+  n.data <- length(RAW) - n.comments
+  if(n.data == 0) return(NULL)
+
+  t1 <- RAW[n.comments + 1] %>% stringr::str_split("\t", simplify = TRUE)
+  t1 <- t1[1,2]
+  # skip for now - generates error in some reading - check upstream
+  #t2 <- RAW[length(RAW)] %>% stringr::str_split("\t", simplify = TRUE)
+  #t2 <- t2[1,2]
+
   meta <-
     RAW[1:n.comments] |>
+    # should really not be needed, but check e.g. "/u2/merki/gogn/DSTmilli-gogn/M1088/1M1088.DAT"
+    unique() |>
     stringr::str_replace("#", "") |>
     stringr::str_split("\t")
 
   res <-
     tibble::tibble(var = purrr::map_chr(meta, 2),
-                   val = purrr::map_chr(meta, 3))
+                   val = purrr::map_chr(meta, 3)) %>%
+    dplyr::bind_rows(tibble::tribble(~var, ~val,
+                                     "n", as.character(n.data),
+                                     "t1", t1))
 
+  # The Date def has most often two elements
+  #  TODO: improve this
   names(meta) <- purrr::map_chr(meta, 2)
   x <- purrr::pluck(meta, "Date def.:")[4]
-  if(!is.na(x)) {
+  if(!is.null(x)) {
     res <-
       res |>
       dplyr::mutate(val = ifelse(var == "Date def.:",
@@ -63,9 +87,22 @@ read_dst_header <- function(fil, long = TRUE) {
   } else {
     res <-
       res |>
-      tidyr::spread(var, val, convert = TRUE) |>
-      # Need to check this
-      dplyr::mutate(`Date-time:` = lubridate::dmy_hms(`Date-time:`)) |>
+      # to keep the order
+      dplyr::mutate(var = forcats::as_factor(var)) %>%
+      tidyr::spread(var, val, convert = TRUE)
+    # NOTE
+      #  seems to be that the format in the Date-time: can be of the form
+      #   mdy_hms but that the actual data can be of the form
+      #   dmy_hms
+      # see e.g.: "/u2/merki/gogn/Hrognkelsi/M14613/1M14613.DAT"
+      # here try both
+    dtm <- res$`Date-time:`
+    dtm2 <- c(lubridate::dmy_hms(dtm), lubridate::mdy_hms(dtm))
+    dtm2 <- dtm2[!is.na(dtm2)]
+    dtm2 <- dtm2[1]
+    res$`Date-time:` <- dtm2
+    res <-
+      res %>%
       dplyr::bind_cols(file_info)
   }
 

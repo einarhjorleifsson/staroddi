@@ -1,0 +1,147 @@
+---
+title: "Mining u2/merki"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  message = FALSE, 
+  warning = FALSE,
+  collapse = TRUE,
+  error = TRUE,
+  comment = "#>"
+)
+```
+
+
+
+```{r}
+library(tidyverse)
+library(staroddi)
+library(tidyverse)
+library(staroddi)
+```
+
+## Problem statement
+
+Although the DST-recaptures have systematically been reported along with conventional recaptures in the MFRI database, the DST profile records (time, temperature, depth, ...) have not.
+
+Fortunately, many of the DST profiles (.DAT files) have been stored in a common directory (/u2/merki) since the beginning of the century. The problem here though is that the space has been used both as a raw data storage space as well as processing space. Hence one may have multiple identical original files or some extracts of the those in different folders.
+
+The objective here is:
+
+* Map the space, for now only focusing on the .DAT files
+* Design an algorithm that:
+  * Copy the most original version of a .DAT file (earliest modification date, most number of records) and store it in a single directory space.
+  
+What is not (yet) considered here is:
+
+* Retrieval of auxillary files or whole directories
+* Uploading of missing DST-profiles into the central database
+
+## .DAT mapping
+
+All headers of the .DAT files within the `/u2/merki` are first gathered
+
+
+TODO:
+
+* ...
+* ...
+
+Problem :
+
+* "/u2/merki/gogn/Hrognkelsi/M14613/1M14613.DAT" has got the mdy format for `Date-time:`
+
+This should be solvable - just need to check the format in the header file
+
+```{r mapping}
+files <-
+  fs::dir_info("/u2/merki", recurse = TRUE, fail = FALSE, glob = "*.DAT") %>%
+  mutate(path = as.character(path),
+         file = basename(path),
+         ID = 1:n())
+# read all the files
+res <- map(files$path, read_dst_header, FALSE)
+
+d <- 
+  bind_rows(res) %>% 
+  janitor::clean_names() %>% 
+  mutate(loc = str_locate(recorder, "[a-zA-Z]+")[,1],
+         utgafa = str_sub(recorder, 1, loc-1),
+         audkenni = stringr::str_extract(recorder, "[a-zA-Z]+") |> stringr::str_to_upper(),
+         numerc = stringr::str_sub(recorder, loc + 1),
+         numer = as.integer(numerc),
+         utgafa = as.integer(utgafa)) %>% 
+  group_by(recorder) %>% 
+  mutate(n.recorder = n()) %>% 
+  ungroup()
+```
+
+Problem with algorithm, fix upstream:
+
+```{r}
+d %>% 
+  filter(is.na(date_time)) %>% 
+  glimpse()
+# the files to check
+d %>% 
+  filter(is.na(date_time)) %>% 
+  pull(path)
+```
+
+... for the time being, filter these out:
+```{r}
+d <- 
+  d %>% 
+  filter(!is.na(date_time))
+```
+
+
+## Selection of .DAT files to "move"
+
+```{r}
+# what does modification time vs change_time mean??
+d %>% 
+  select(recorder, date_time, modification_time, change_time, path) %>% 
+  mutate(diff = difftime(change_time, modification_time, units = "days")) %>% 
+  arrange(diff)
+```
+
+... filtering
+
+
+```{r}
+d.filtered <- 
+  d %>% 
+  select(recorder, audkenni, numer, utgafa, n, modification_time, everything()) %>% 
+  arrange(audkenni, numer, utgafa, desc(n), modification_time) %>% 
+  group_by(recorder) %>% 
+  # filter by mininum modification_time and maximum n
+  filter(n == max(n) & 
+           modification_time == min(modification_time) &
+           date_time == min(date_time)) %>% 
+  # above things being equal, take the first slice
+  #  could here think about prioritizing the directory the data is taken from
+  slice(1) %>% 
+  ungroup()
+```
+
+... we should here have unique recorder
+
+```{r}
+d.filtered %>% 
+  group_by(recorder) %>% 
+  mutate(n.unique = n()) %>% 
+  ungroup() %>% 
+  filter(n.unique > 1) %>% 
+  nrow()
+```
+
+## Make a copy of above files
+
+... preserve time
+
+```{r}
+
+```
+
