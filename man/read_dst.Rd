@@ -19,5 +19,5 @@ Read profile data from StarOddi
 library(staroddi)
 dst <- read_dst(system.file("demos/1M9380.DAT", package="staroddi"))
 dst
-attributes(dst)$meta
+attributes(dst)$header
 }

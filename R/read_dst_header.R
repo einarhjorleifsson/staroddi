@@ -29,15 +29,15 @@ read_dst_header <- function(fil, long = TRUE) {
   RAW <- readLines(fil, encoding = "latin1")
   n.comments <- stringr::str_detect(RAW, "^#") |> sum()
   # need to know the minimum number of comments from Sigmar
-  if(n.comments == 0 | !str_detect(RAW[1], "Date-time:")) return(NULL)
+  if(n.comments == 0 | !stringr::str_detect(RAW[1], "Date-time:")) return(NULL)
 
   n.data <- length(RAW) - n.comments
   if(n.data == 0) return(NULL)
 
-  t1 <- RAW[n.comments + 1] %>% stringr::str_split("\t", simplify = TRUE)
+  t1 <- RAW[n.comments + 1] |> stringr::str_split("\t", simplify = TRUE)
   t1 <- t1[1,2]
   # skip for now - generates error in some reading - check upstream
-  #t2 <- RAW[length(RAW)] %>% stringr::str_split("\t", simplify = TRUE)
+  #t2 <- RAW[length(RAW)] |> stringr::str_split("\t", simplify = TRUE)
   #t2 <- t2[1,2]
 
   meta <-
@@ -49,7 +49,7 @@ read_dst_header <- function(fil, long = TRUE) {
 
   res <-
     tibble::tibble(var = purrr::map_chr(meta, 2),
-                   val = purrr::map_chr(meta, 3)) %>%
+                   val = purrr::map_chr(meta, 3)) |>
     dplyr::bind_rows(tibble::tribble(~var, ~val,
                                      "n", as.character(n.data),
                                      "t1", t1))
@@ -74,11 +74,11 @@ read_dst_header <- function(fil, long = TRUE) {
                                              var == "Field separation:" & val == "0" ~ "space",
                                              var == "Decimal point:" & val == "0" ~ ",",
                                              var == "Decimal point:" & val == "1" ~ ".",
-                                             var == "Channel 1:" ~ tolower(str_sub(val, 1, 5)),
-                                             var == "Channel 2:" ~ tolower(str_sub(val, 1, 5)),
-                                             var == "Channel 3:" ~ tolower(str_sub(val, 1, 5)),
-                                             var == "Channel 4:" ~ tolower(str_sub(val, 1, 5)),
-                                             var == "Channel 5:" ~ tolower(str_sub(val, 1, 5)),
+                                             var == "Channel 1:" ~ tolower(stringr::str_sub(val, 1, 5)),
+                                             var == "Channel 2:" ~ tolower(stringr::str_sub(val, 1, 5)),
+                                             var == "Channel 3:" ~ tolower(stringr::str_sub(val, 1, 5)),
+                                             var == "Channel 4:" ~ tolower(stringr::str_sub(val, 1, 5)),
+                                             var == "Channel 5:" ~ tolower(stringr::str_sub(val, 1, 5)),
                                              TRUE ~ NA_character_)) |>
     dplyr::bind_rows(file_info |>
                        dplyr::mutate_all(as.character) |>
@@ -88,7 +88,7 @@ read_dst_header <- function(fil, long = TRUE) {
     res <-
       res |>
       # to keep the order
-      dplyr::mutate(var = forcats::as_factor(var)) %>%
+      dplyr::mutate(var = forcats::as_factor(var)) |>
       tidyr::spread(var, val, convert = TRUE)
     # NOTE
       #  seems to be that the format in the Date-time: can be of the form
@@ -102,7 +102,7 @@ read_dst_header <- function(fil, long = TRUE) {
     dtm2 <- dtm2[1]
     res$`Date-time:` <- dtm2
     res <-
-      res %>%
+      res |>
       dplyr::bind_cols(file_info)
   }
 
