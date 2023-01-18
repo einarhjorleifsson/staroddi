@@ -12,13 +12,12 @@ knitr::opts_chunk$set(
 )
 ```
 
-
-
 ```{r}
-library(tidyverse)
+library(fs)
+library(omar)
+library(lubridate)
 library(staroddi)
 library(tidyverse)
-library(staroddi)
 ```
 
 ## Problem statement
@@ -37,6 +36,18 @@ What is not (yet) considered here is:
 
 * Retrieval of auxillary files or whole directories
 * Uploading of missing DST-profiles into the central database
+
+```{r tagdata}
+con <- connect_mar()
+ak <- c("ISL.ELDI.", "UTE.DUMMY", "ISL.MILLI.", "ISL.RAF.", 
+        "ESKIFJORDUR", "ISL.GPS.", "ISL.MICRO.", "BIOPOL",
+        "Hafro.Selur", "SL.EHJ", "Pit tag", "DST", "Pop-up",
+        "RAF")
+tgs <- 
+  taggart(con) %>% 
+  filter(audkenni %in% ak) %>% 
+  collect(n = Inf)
+```
 
 ## .DAT mapping
 
@@ -61,20 +72,33 @@ files <-
          file = basename(path),
          ID = 1:n())
 # read all the files
-res <- map(files$path, read_dst_header, FALSE)
-
-d <- 
-  bind_rows(res) %>% 
-  janitor::clean_names() %>% 
+header <- 
+  map(files$path, read_dst_header, long = FALSE) %>% 
+  bind_rows() %>% 
+  janitor::clean_names()
+header %>% glimpse()
+header %>% 
   mutate(loc = str_locate(recorder, "[a-zA-Z]+")[,1],
          utgafa = str_sub(recorder, 1, loc-1),
-         audkenni = stringr::str_extract(recorder, "[a-zA-Z]+") |> stringr::str_to_upper(),
+         ak = stringr::str_extract(recorder, "[a-zA-Z]+") |> stringr::str_to_upper(),
          numerc = stringr::str_sub(recorder, loc + 1),
          numer = as.integer(numerc),
          utgafa = as.integer(utgafa)) %>% 
   group_by(recorder) %>% 
   mutate(n.recorder = n()) %>% 
-  ungroup()
+  ungroup() %>% 
+  arrange(ak, numer, utgafa, desc(n), modification_time) %>% 
+  group_by(recorder) %>% 
+  mutate(n.tmp = 1:n()) %>% 
+  # identify profile that has mininum modification_time and maximum n
+  mutate(use = ifelse(n == max(n) & 
+                        modification_time == min(modification_time) &
+                        date_time == min(date_time) &
+                        n.tmp == min(n.tmp),
+                      TRUE,
+                      FALSE)) %>% 
+  ungroup() %>% 
+  select(-n.tmp)
 ```
 
 Problem with algorithm, fix upstream:
@@ -139,9 +163,81 @@ d.filtered %>%
 
 ## Make a copy of above files
 
-... preserve time
+... how to preserve time
+
+... check out file_link
 
 ```{r}
-
+map(d.filtered$path, file_copy, "/u2/reikn/einarhj/tgs/DAT")
 ```
 
+## Read in again, now from the new location
+
+```{r}
+files <-
+  fs::dir_info("/u2/reikn/einarhj/tgs/DAT", recurse = TRUE, fail = FALSE, glob = "*.DAT") %>%
+  mutate(path = as.character(path),
+         file = basename(path),
+         ID = 1:n())
+# read all the files
+res <- map(files$path, read_dst_header, FALSE)
+
+d <- 
+  bind_rows(res) %>% 
+  janitor::clean_names() %>% 
+  mutate(loc = stringr::str_locate(recorder, "[a-zA-Z]+")[,1],
+         utgafa = str_sub(recorder, 1, loc-1),
+         audkenni = stringr::str_extract(recorder, "[a-zA-Z]+") |> stringr::str_to_upper(),
+         numerc = stringr::str_sub(recorder, loc + 1),
+         numer = as.integer(numerc),
+         utgafa = as.integer(utgafa)) %>% 
+  group_by(recorder) %>% 
+  mutate(n.recorder = n()) %>% 
+  ungroup()
+d %>% 
+  filter(n.recorder > 1) %>% 
+  nrow()
+```
+
+```{r}
+library(omar)
+con <- connect_mar()
+ak <- c("ISL.ELDI.", "UTE.DUMMY", "ISL.MILLI.", "ISL.RAF.", 
+        "ESKIFJORDUR", "ISL.GPS.", "ISL.MICRO.", "BIOPOL",
+        "Hafro.Selur", "SL.EHJ", "Pit tag", "DST", "Pop-up",
+        "RAF")
+rec.dst <- 
+  taggart(con) %>% 
+  filter(audkenni %in% ak) %>% 
+  collect(n = Inf)
+```
+
+... just the taggart bookkeeping:
+
+```{r}
+rec.dst %>% 
+  mutate(recaptured = ifelse(!is.na(rdate), TRUE, FALSE),
+         onrecord = ifelse(!is.na(dst_id), TRUE, FALSE)) %>% 
+  count(rsid, audkenni, recaptured, onrecord) %>% 
+  knitr::kable()
+```
+
+... join with the mined data:
+
+```{r}
+rec.dst %>% 
+  mutate(recaptured = ifelse(!is.na(rdate), TRUE, FALSE),
+         onrecord = ifelse(!is.na(dst_id), TRUE, FALSE)) %>% 
+  full_join(d %>% 
+              select(recorder) %>% 
+              mutate(on.disk = TRUE),
+            by = c("dst_id" = "recorder")) %>% 
+  mutate(on.disk = replace_na(on.disk, FALSE)) %>% 
+  count(rsid, audkenni, recaptured, onrecord, on.disk) %>% 
+  knitr::kable()
+```
+
+... hmmmmm, 
+
+
+## Lets focus on cod
