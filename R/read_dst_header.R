@@ -29,7 +29,7 @@ read_dst_header <- function(fil, long = TRUE) {
   RAW <- readLines(fil, encoding = "latin1")
   n.comments <- stringr::str_detect(RAW, "^#") |> sum()
   # need to know the minimum number of comments from Sigmar
-  if(n.comments == 0 | !stringr::str_detect(RAW[1], "Date-time:")) return(NULL)
+  if(n.comments == 0 | !any(str_detect(RAW[1], c("Date-time:", "Created:")))) return(NULL)
 
   n.data <- length(RAW) - n.comments
   if(n.data == 0) return(NULL)
