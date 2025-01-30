@@ -19,6 +19,7 @@ library(omar)
 library(lubridate)
 library(staroddi)
 library(tidyverse)
+source("~/stasi/taggart/scripts/read_dst.R")
 ```
 
 ## Problem statement
@@ -40,10 +41,10 @@ What is not (yet) considered here is:
 
 ```{r tagdata}
 con <- connect_mar()
-ak <- c("ISL.ELDI.", "UTE.DUMMY", "ISL.MILLI.", "ISL.RAF.", 
-        "ESKIFJORDUR", "ISL.GPS.", "ISL.MICRO.", "BIOPOL",
-        "Hafro.Selur", "SL.EHJ", "Pit tag", "DST", "Pop-up",
-        "RAF")
+ak <- c("ISL.CENTI.", "ISL.EHJ",
+        "ISL.ELDI.", "ISL.GPS.",
+        "ISL.MICRO.", "ISL.MILLI.",
+        "ISL.RAF.", "ISL.V13.")
 tgs <- 
   taggart(con) %>% 
   filter(audkenni %in% ak) %>% 
@@ -68,17 +69,17 @@ This should be solvable - just need to check the format in the header file
 
 ```{r mapping}
 files <-
-  fs::dir_info("/u2/merki", recurse = TRUE, fail = FALSE, glob = "*.DAT") %>%
+  fs::dir_info("/u2/merki/gogn", recurse = TRUE, fail = FALSE, glob = "*.DAT") %>%
   mutate(path = as.character(path),
          file = basename(path),
          ID = 1:n())
-# read all the files
 header <- 
   map(files$path, read_dst_header, long = FALSE) %>% 
   bind_rows() %>% 
   janitor::clean_names()
 header %>% glimpse()
-header %>% 
+d <- 
+  header %>% 
   mutate(loc = str_locate(recorder, "[a-zA-Z]+")[,1],
          utgafa = str_sub(recorder, 1, loc-1),
          ak = stringr::str_extract(recorder, "[a-zA-Z]+") |> stringr::str_to_upper(),
@@ -175,6 +176,7 @@ map(d.filtered$path, file_copy, "/u2/reikn/einarhj/tgs/DAT")
 ## Read in again, now from the new location
 
 ```{r}
+"/u2/reikn/einarhj/tgs"
 files <-
   fs::dir_info("/u2/reikn/einarhj/tgs/DAT", recurse = TRUE, fail = FALSE, glob = "*.DAT") %>%
   mutate(path = as.character(path),

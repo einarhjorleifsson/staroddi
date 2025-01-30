@@ -23,37 +23,57 @@ read_dst <- function(fil) {
 
   header <- read_dst_header(fil)
 
+  n.comments <-
+    fil |>
+    readLines(n = 30) |>
+    stringr::str_detect("^#") |>
+    sum()
+
+
   delim <- header |> dplyr::filter(var == "Field separation:") |> dplyr::pull(comment)
-  delim <- ifelse(delim == "tab", "\t", " ")
-  decimal <- header |> dplyr::filter(var == "Decimal point:") |> dplyr::pull(comment)
+  if(length(delim) == 0) {
+    delim <- "tab"
+  }
+
   dttm <- header |> dplyr::filter(var == "Date def.:") |> dplyr::pull(val)
   dttm <- stringr::str_sub(dttm, 1, 1)
-  ncol <- header |> dplyr::filter(var == "Columns:") |> dplyr::pull(val)
-  recorder <- header |> dplyr::filter(var == "Recorder:") |> dplyr::pull(val)
+  if(length(dttm) == 0) {
+    dttm <- "0"
+  }
 
-  if(ncol != "4") stop("Check header setting")
+  ncol <- header |> dplyr::filter(var == "Columns:") |> dplyr::pull(val)
+  if(length(ncol) == 0) ncol <- 4
   if(ncol == "4") cn <- c(".rid", "time", "temp", "depth")
+  if(ncol == "5") cn <- c(".rid", "date", "time", "temp", "depth")
 
 
   DATA <-
-    utils::read.table(fil,
-                      header = FALSE,
-                      col.names = cn,
-                      sep = delim,
-                      dec = decimal,
-                      na.strings = "____") |>
-    tibble::as_tibble()
+    readr::read_delim(fil,
+               na = c("____"),
+               col_names = cn,
+               col_types = "c",
+               delim = "\t",
+               skip = n.comments,
+               show_col_types = FALSE,
+               guess_max = 1e5) |>
+    dplyr::mutate(temp = as.numeric(stringr::str_replace(temp, ",", ".")),
+           depth = as.numeric(stringr::str_replace(depth, ",", ".")))
+  if(ncol == 5) {
+    DATA <-
+      DATA |>
+      dplyr::mutate(time = paste(date, time)) |>
+      dplyr::select(-date)
+  }
 
   if(dttm == "0") {
-    DATA <- DATA |> dplyr::mutate(time = lubridate::dmy_hms(time))
+    DATA <-
+      DATA |>
+      dplyr::mutate(time = utf8::utf8_encode(time),
+                    time = lubridate::dmy_hms(time))
   } else {
     DATA <- DATA |> dplyr::mutate(time = lubridate::mdy_hms(time))
   }
 
-  DATA <-
-    DATA |>
-    dplyr::mutate(depth = -depth,
-                  recorder = recorder)
   attributes(DATA)$header <- header
 
   return(DATA)

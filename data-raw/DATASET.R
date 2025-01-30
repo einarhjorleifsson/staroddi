@@ -7,4 +7,5 @@
 # external files
 fs::file_copy("/u2/merki/gogn/Hlynur-Ólafsvík/1M9380.DAT",
               "inst/staroddi/1M9380.DAT")
-read_dst(system.file("staroddi/1M9380.DAT", package="staroddi"))
+dst <- read_dst(system.file("demos/1M9380.DAT", package="staroddi"))
+attributes(dst)$header |> knitr::kable()
