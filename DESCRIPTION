@@ -1,10 +1,10 @@
 Package: staroddi
 Title: Reads StarOddi files and then some
-Version: 2022-05-21
+Version: 2025-03-14
 Authors@R: 
     person("Einar", "Hjorleifsson", , "einar.hjorleifsson@gmail.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph). Some more stuff here.
+           comment = c(ORCID = "0009-0004-2160-5380"))
+Description: Reads StarOddi .DAT files. And then some.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

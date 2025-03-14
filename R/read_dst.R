@@ -42,7 +42,7 @@ read_dst <- function(fil) {
   }
 
   ncol <- header |> dplyr::filter(var == "Columns:") |> dplyr::pull(val)
-  if(length(ncol) == 0) ncol <- 4
+  if(length(ncol) %in% 0:1) ncol <- "4"
   if(ncol == "4") cn <- c(".rid", "time", "temp", "depth")
   if(ncol == "5") cn <- c(".rid", "date", "time", "temp", "depth")
 
@@ -57,7 +57,8 @@ read_dst <- function(fil) {
                show_col_types = FALSE,
                guess_max = 1e5) |>
     dplyr::mutate(temp = as.numeric(stringr::str_replace(temp, ",", ".")),
-           depth = as.numeric(stringr::str_replace(depth, ",", ".")))
+           depth = as.numeric(stringr::str_replace(depth, ",", ".")),
+           time = stringr::str_replace(time, ",", "."))
   if(ncol == 5) {
     DATA <-
       DATA |>
@@ -65,7 +66,7 @@ read_dst <- function(fil) {
       dplyr::select(-date)
   }
 
-  if(dttm == "0") {
+  if(dttm %in% c("0", "d")) {
     DATA <-
       DATA |>
       dplyr::mutate(time = utf8::utf8_encode(time),
@@ -73,6 +74,8 @@ read_dst <- function(fil) {
   } else {
     DATA <- DATA |> dplyr::mutate(time = lubridate::mdy_hms(time))
   }
+
+  DATA <- DATA |> dplyr::select(1:4)
 
   attributes(DATA)$header <- header
 
