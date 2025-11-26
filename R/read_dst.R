@@ -51,7 +51,7 @@ read_dst <- function(fil) {
     readr::read_delim(fil,
                na = c("____"),
                col_names = cn,
-               col_types = "c",
+               col_types = stringr::str_sub("ccccccccc", 1, ncol),
                delim = "\t",
                skip = n.comments,
                show_col_types = FALSE,
